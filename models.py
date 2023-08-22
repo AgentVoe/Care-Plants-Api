@@ -11,18 +11,19 @@ class User(Base):
     login = Column(String, unique=True)
     password = Column(String)
 
-    plants = relationship("Plant", back_populates="owner")
+    plants = relationship("Plant", back_populates="user")
 
 class Plant(Base):
     __tablename__ = "plants"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
+    title = Column(String, index=True)
     description = Column(String)
     image = Column(String)
     privacy = Column(Boolean, default=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
 
-    owner = relationship("User", back_populates="plants")
+    user = relationship("User", back_populates="plants")
 
 
 
