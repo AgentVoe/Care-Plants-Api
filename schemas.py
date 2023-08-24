@@ -1,3 +1,5 @@
+import datetime
+
 from pydantic import BaseModel
 
 
@@ -14,10 +16,9 @@ class PlantCreate(PlantBase):
 
 class Plant(PlantBase):
     id: int
-    user_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserBase(BaseModel):
@@ -27,11 +28,35 @@ class UserBase(BaseModel):
 
 class User(UserBase):
     id: int
-    plants: list[Plant] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserCreate(UserBase):
     password: str
+
+
+class PlantSchema(PlantBase):
+    users: list[UserBase]
+
+
+class UsersSchema(UserBase):
+    plants: list[PlantBase]
+
+
+class WateringBase(BaseModel):
+    week_day: int
+    time: datetime
+    last_watering: datetime
+
+
+class Watering(WateringBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class WateringSchema(WateringBase):
+    plants: list[PlantBase]
