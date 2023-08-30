@@ -1,8 +1,55 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import select, text, and_
 
-from . import models, schemas
+
+
+import models
+import schemas
 
 
 def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    return db.query(models.User).options(joinedload(models.User.plants)).where(models.User.id == user_id).one()
+
+
+def create_user(db: Session, user: schemas.UserCreate):
+    fake_hashed_psswrd = user.password + "123"
+    db_user = models.User(name=user.name, login=user.login, password=fake_hashed_psswrd)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+def create_plant(db: Session, plant: schemas.PlantCreate):
+    plant_to_add = models.Plant(
+        title=plant.title,
+        description=plant.description,
+        image=plant.image,
+        privacy=plant.privacy
+    )
+
+    db.add(plant_to_add)
+    db.commit()
+    db.refresh(plant_to_add)
+    return plant_to_add
+
+
+def get_user_by_login(db: Session, login: str):
+    user = db.query(models.User).options(joinedload(models.User.plants)).where(models.User.login == login).first()
+    if user is None:
+        return None
+    return user
+
+
+def get_user_plants(db: Session, login: str):
+    plants = db.query(models.User).options(joinedload(models.User.plants)).where(models.User.login == login)
+    return plants
+
+
+def get_alike_plants(db: Session, user_login: str, plant_title: str):
+    res = db.query(models.Plant).join(models.UserPlant, models.Plant.id == models.UserPlant.plant_id).\
+        join(models.User, models.User.id == models.UserPlant.user_id).\
+        where(and_(models.User.login == user_login, models.Plant.title == plant_title))
+    return res
+
 
