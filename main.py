@@ -93,5 +93,26 @@ def delete_plant(login: str, plant_title: str, db: Session = Depends(get_db)):
     return crud.delete_plant(db=db, _id=plant_model.id)
 
 
+@app.get("/community/plants/", response_model=list[schemas.PlantSchema])
+def get_public_plants(db: Session = Depends(get_db)):
+    # query = db.query(models.Plant.id,
+    #                  models.Plant.title,
+    #                  models.Plant.description,
+    #                  models.Plant.image,
+    #                  models.User.login) \
+    #     .join(models.UserPlant, models.Plant.id == models.UserPlant.plant_id) \
+    #     .join(models.User, models.User.id == models.UserPlant.user_id) \
+    #     .filter(models.Plant.privacy == False) \
+    #     .all()
+
+    query = db.query(models.Plant) \
+            .join(models.UserPlant, models.Plant.id == models.UserPlant.plant_id) \
+            .join(models.User, models.User.id == models.UserPlant.user_id) \
+            .filter(models.Plant.privacy == False) \
+            .all()
+
+    return query
+
+
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)
