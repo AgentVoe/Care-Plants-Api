@@ -23,13 +23,6 @@ class PlantCreate(PlantBase):
 
 class PlantUpdate(PlantBase):
     pass
-    # class Config:
-    #     schema_extra = {
-    #         "title": "title",
-    #         "description": "description",
-    #         "image": "image",
-    #         "privacy": "privacy"
-    #     }
 
 
 class UserBase(BaseModel):
@@ -69,6 +62,9 @@ class Watering(WateringBase):
         from_attributes = True
 
 
+class WateringCreate(WateringBase):
+    pass
+
 class WateringSchema(WateringBase):
     plants: list[PlantBase]
 
@@ -83,3 +79,4 @@ class UserPlant(UserPlantBase):
 
     class Config:
         from_attributes = True
+
