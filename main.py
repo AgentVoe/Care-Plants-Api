@@ -41,11 +41,11 @@ def find_alike_plants(user_login: str, plant_title: str, db: Session = Depends(g
         return plants
 
 
-@app.post("/users/{login}/plants/", response_model=schemas.Plant)
+@app.post("/users/{login}/plants/", response_model=schemas.PlantCreate)
 def create_plant(login: str, plant: schemas.PlantCreate, db: Session = Depends(get_db)):
     _plant = crud.get_alike_plants(user_login=login, db=db, plant_title=plant.title).first()
     if _plant is None:
-        return crud.create_plant(plant=plant, db=db)
+        return crud.create_plant(plant=plant, db=db, login=login)
     else:
         raise HTTPException(status_code=400, detail='Plant already exists!')
 
@@ -65,6 +65,16 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     if db_user is None:
         raise HTTPException(status_code=404, detail="User mot found!")
     return db_user
+
+
+# Don't sure how this must work, solve it later
+@app.put("/users/{login}/{plant_title}/", response_model=schemas.PlantUpdate)
+def update_plant(login: str, plant_title: str, plant: schemas.PlantUpdate, db: Session = Depends(get_db)):
+    plant_model = crud.get_alike_plants(db=db, user_login=login, plant_title=plant_title)
+    if plant_model is None:
+        raise HTTPException(status_code=404, detail='Something went wrong!')
+    
+    return crud.update_plant(db=db, login=login, title=plant_title, plant=plant)
 
 
 if __name__ == '__main__':
