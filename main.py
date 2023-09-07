@@ -59,6 +59,14 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail='Login already exists!')
 
 
+@app.post("/users/{login}/{plant_title}/watering/", response_model=schemas.WateringCreate)
+def create_watering(login: str, plant_title: str, watering: schemas.WateringCreate, db: Session = Depends(get_db)):
+    watering_model = crud.create_watering(db=db, login=login, title=plant_title, watering=watering)
+    if watering_model is None:
+        raise HTTPException(status_code=400, detail='Something went wrong!')
+    return watering_model
+
+
 @app.get("/users/{user_id}", response_model=schemas.User)
 def read_user(user_id: int, db: Session = Depends(get_db)):
     db_user = crud.get_user(db, user_id)
@@ -83,6 +91,7 @@ def delete_plant(login: str, plant_title: str, db: Session = Depends(get_db)):
     if plant_model is None:
         raise HTTPException(status_code=404, detail='Something went wrong!')
     return crud.delete_plant(db=db, _id=plant_model.id)
+
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)

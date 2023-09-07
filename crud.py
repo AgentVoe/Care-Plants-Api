@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select, text, and_
 
-
-
+import crud
 import models
 import schemas
 
@@ -88,3 +87,32 @@ def delete_plant(db: Session, _id: int):
 
     db.commit()
     return {f"Plant with id: {_id} has been successfully deleted!"}
+
+
+def create_watering(db: Session, login: str, title: str, watering: schemas.WateringCreate):
+    # Create watering calendar
+    plant_model = get_alike_plants(db=db, user_login=login, plant_title=title).first()
+
+    watering_model = models.Watering(
+        week_day=watering.week_day,
+        time=watering.time,
+        last_watering=watering.last_watering
+    )
+
+    db.add(watering_model)
+    db.commit()
+    db.refresh(watering_model)
+
+    add_plant_watering_row(db=db, plant_id=plant_model.id, watering_id=watering_model.id)
+    return watering_model
+
+
+def add_plant_watering_row(watering_id: int, plant_id: int, db: Session):
+    model = models.PlantWatering(
+        plant_id=plant_id,
+        watering_id=watering_id
+    )
+
+    db.add(model)
+    db.commit()
+    db.refresh(model)
