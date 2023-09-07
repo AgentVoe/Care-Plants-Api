@@ -20,7 +20,7 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-def create_plant(db: Session, plant: schemas.PlantCreate):
+def create_plant(db: Session, plant: schemas.PlantCreate, login: str):
     plant_to_add = models.Plant(
         title=plant.title,
         description=plant.description,
@@ -31,6 +31,8 @@ def create_plant(db: Session, plant: schemas.PlantCreate):
     db.add(plant_to_add)
     db.commit()
     db.refresh(plant_to_add)
+    user_id = get_user_by_login(db=db, login=login)
+    add_user_plant_row(db=db, user_id=user_id.id, plant_id=plant_to_add.id)
     return plant_to_add
 
 
@@ -53,3 +55,28 @@ def get_alike_plants(db: Session, user_login: str, plant_title: str):
     return res
 
 
+def add_user_plant_row(db: Session, user_id: int, plant_id: int):
+    user_plant_to_add = models.UserPlant(
+        user_id=user_id,
+        plant_id=plant_id
+    )
+
+    db.add(user_plant_to_add)
+    db.commit()
+    db.refresh(user_plant_to_add)
+
+
+def update_plant(db: Session, login: str, title: str, plant: schemas.PlantUpdate):
+    plant_model = db.query(models.Plant).join(models.UserPlant, models.Plant.id == models.UserPlant.plant_id).\
+        join(models.User, models.User.id == models.UserPlant.user_id).\
+        where(and_(models.User.login == login, models.Plant.title == title)).first()
+
+    plant_model.title = plant.title
+    plant_model.description = plant.description
+    plant_model.image = plant.image
+    plant_model.privacy = plant.privacy
+
+    db.add(plant_model)
+    db.commit()
+    db.refresh(plant_model)
+    return plant_model
