@@ -77,5 +77,12 @@ def update_plant(login: str, plant_title: str, plant: schemas.PlantUpdate, db: S
     return crud.update_plant(db=db, login=login, title=plant_title, plant=plant)
 
 
+@app.delete("/users/{login}/{plant_title}/")
+def delete_plant(login: str, plant_title: str, db: Session = Depends(get_db)):
+    plant_model = crud.get_alike_plants(db=db, user_login=login, plant_title=plant_title).first()
+    if plant_model is None:
+        raise HTTPException(status_code=404, detail='Something went wrong!')
+    return crud.delete_plant(db=db, _id=plant_model.id)
+
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)
