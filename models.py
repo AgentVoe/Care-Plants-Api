@@ -2,21 +2,24 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table, Date
 from sqlalchemy.orm import relationship
 from database import Base
 
-# Many-to-many table to connect Users and Plants
-user_plant = Table('user_plant', Base.metadata,
-                   Column('id', Integer, primary_key=True, index=True),
-                   Column('user_id', ForeignKey('users.id'), primary_key=True),
-                   Column('plant_id', ForeignKey('plants.id'), primary_key=True),
-                   )
+
 
 # Many-to-many table to connect Plants and Watering
 plant_watering = Table('plant_watering', Base.metadata,
-                       Column('id', Integer, primary_key=True, index=True),
+                       Column('id', Integer, primary_key=True, index=True, autoincrement=True),
                        Column('plant_id', ForeignKey('plants.id'), primary_key=True),
                        Column('watering_id', ForeignKey('watering.id'), primary_key=True)
                        )
 
 # User, Plant, Watering classes representing tables structure in database
+
+
+class UserPlant(Base):
+    __tablename__ = 'user_plant'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    plant_id = Column(Integer, ForeignKey('plants.id'), primary_key=True)
 
 
 class User(Base):
@@ -52,5 +55,5 @@ class Watering(Base):
     time = Column(DateTime)
     last_watering = Column(DateTime)
 
-    plants = relationship("Plant", secondary='plant_watering', back_populates='watering')
+    plants = relationship("Plant", secondary='plant_watering', back_populates='waterings')
 
