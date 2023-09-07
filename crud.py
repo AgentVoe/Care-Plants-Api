@@ -80,3 +80,11 @@ def update_plant(db: Session, login: str, title: str, plant: schemas.PlantUpdate
     db.commit()
     db.refresh(plant_model)
     return plant_model
+
+
+def delete_plant(db: Session, _id: int):
+    db.query(models.UserPlant).filter(models.UserPlant.plant_id == _id).delete()
+    db.query(models.Plant).filter(models.Plant.id == _id).delete()
+
+    db.commit()
+    return {f"Plant with id: {_id} has been successfully deleted!"}
