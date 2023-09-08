@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import select, text, and_
 
-import crud
 import models
 import schemas
 
@@ -90,7 +89,8 @@ def delete_plant(db: Session, _id: int):
 
 
 def create_watering(db: Session, login: str, title: str, watering: schemas.WateringCreate):
-    # Create watering calendar
+    # TODO:
+    # Use Enum for days of week
     plant_model = get_alike_plants(db=db, user_login=login, plant_title=title).first()
 
     watering_model = models.Watering(
@@ -116,3 +116,28 @@ def add_plant_watering_row(watering_id: int, plant_id: int, db: Session):
     db.add(model)
     db.commit()
     db.refresh(model)
+
+
+def get_all_public_plants(db: Session):
+    query = db.query(models.Plant) \
+        .join(models.UserPlant, models.Plant.id == models.UserPlant.plant_id) \
+        .join(models.User, models.User.id == models.UserPlant.user_id) \
+        .filter(models.Plant.privacy == False) \
+        .all()
+    return query
+
+
+def get_current_plant(title: str, db: Session):
+    return db.query(models.Plant).filter(models.Plant.title == title).first()
+
+
+def add_public_plant(title: str, login: str, db: Session):
+    user_model = get_user_by_login(db=db, login=login)
+    plant_model = get_alike_plants(db=db, plant_title=title, user_login=login).first()
+    if plant_model is None:
+        plant_model = get_current_plant(title=title, db=db)
+        add_user_plant_row(db, user_id=user_model.id, plant_id=plant_model.id)
+
+        return {f"Plant {title} has been successfully added!"}
+    return {f"You already have {title}!"}
+

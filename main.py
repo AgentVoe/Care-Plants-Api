@@ -95,23 +95,12 @@ def delete_plant(login: str, plant_title: str, db: Session = Depends(get_db)):
 
 @app.get("/community/plants/", response_model=list[schemas.PlantSchema])
 def get_public_plants(db: Session = Depends(get_db)):
-    # query = db.query(models.Plant.id,
-    #                  models.Plant.title,
-    #                  models.Plant.description,
-    #                  models.Plant.image,
-    #                  models.User.login) \
-    #     .join(models.UserPlant, models.Plant.id == models.UserPlant.plant_id) \
-    #     .join(models.User, models.User.id == models.UserPlant.user_id) \
-    #     .filter(models.Plant.privacy == False) \
-    #     .all()
+    return crud.get_all_public_plants(db=db)
 
-    query = db.query(models.Plant) \
-            .join(models.UserPlant, models.Plant.id == models.UserPlant.plant_id) \
-            .join(models.User, models.User.id == models.UserPlant.user_id) \
-            .filter(models.Plant.privacy == False) \
-            .all()
 
-    return query
+@app.post("/community/plants/{login}/{plant_title}/")
+def add_public_plant(plant_title: str, login: str, db: Session = Depends(get_db)):
+    return crud.add_public_plant(title=plant_title, login=login, db=db)
 
 
 if __name__ == '__main__':
