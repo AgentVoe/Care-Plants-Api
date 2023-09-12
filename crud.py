@@ -1,16 +1,16 @@
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import select, text, and_
+from sqlalchemy import and_
 
 import models
 import schemas
-
+from utils import hash_password
 
 def get_user(db: Session, user_id: int):
     return db.query(models.User).options(joinedload(models.User.plants)).where(models.User.id == user_id).one()
 
 
 def create_user(db: Session, user: schemas.UserCreate):
-    fake_hashed_psswrd = user.password + "123"
+    fake_hashed_psswrd = hash_password(user.password)
     db_user = models.User(name=user.name, login=user.login, password=fake_hashed_psswrd)
     db.add(db_user)
     db.commit()
