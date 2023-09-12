@@ -1,4 +1,6 @@
+from typing import Annotated
 import uvicorn
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
@@ -8,6 +10,8 @@ import models
 import schemas
 from database import SessionLocal, engine
 
+
+from utils import check_password, hash_password
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -101,6 +105,16 @@ def get_public_plants(db: Session = Depends(get_db)):
 @app.post("/community/plants/{login}/{plant_title}/")
 def add_public_plant(plant_title: str, login: str, db: Session = Depends(get_db)):
     return crud.add_public_plant(title=plant_title, login=login, db=db)
+
+
+@app.post("/login/")
+def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
+    user_model = crud.get_user_by_login(login=form_data.username, db=db)
+    print(form_data.password.encode('utf-8'), user_model.password)
+    if check_password(form_data.password.encode('utf-8'), user_model.password):
+        return {"access_token": user_model.login, "token_type": "bearer"}
+    else:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
 
 
 if __name__ == '__main__':
